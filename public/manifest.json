@@ -1,0 +1,41 @@
+{
+  "name": "免费全球Radio",
+  "short_name": "全球Radio",
+  "description": "免费收听全球 10 万+ 电台，支持收藏与音量均衡",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "lang": "zh-CN",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "发现电台",
+      "short_name": "发现",
+      "url": "/?tab=explore",
+      "description": "浏览热门全球电台"
+    },
+    {
+      "name": "我的收藏",
+      "short_name": "收藏",
+      "url": "/?tab=favorites",
+      "description": "查看已收藏的电台"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+
+  <!-- Globe outline -->
+  <circle cx="256" cy="272" r="148" stroke="#6366f1" stroke-width="18" fill="none" opacity="0.45"/>
+  <!-- Latitude curves -->
+  <path d="M 108 272 Q 256 208 404 272" stroke="#6366f1" stroke-width="13" fill="none" opacity="0.45"/>
+  <path d="M 108 272 Q 256 336 404 272" stroke="#6366f1" stroke-width="13" fill="none" opacity="0.45"/>
+  <!-- Meridian -->
+  <line x1="256" y1="124" x2="256" y2="420" stroke="#6366f1" stroke-width="13" opacity="0.45"/>
+
+  <!-- Tower pole -->
+  <line x1="256" y1="192" x2="256" y2="288" stroke="#818cf8" stroke-width="14" stroke-linecap="round"/>
+  <!-- Tower base -->
+  <path d="M 214 288 L 298 288" stroke="#818cf8" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- Transmit dot -->
+  <circle cx="256" cy="186" r="14" fill="#6366f1"/>
+
+  <!-- Radio wave arcs -->
+  <path d="M 210 158 Q 256 124 302 158" stroke="#818cf8" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M 176 130 Q 256 82  336 130" stroke="#6366f1" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <path d="M 142 104 Q 256 42  370 104" stroke="#4f46e5" stroke-width="11" fill="none" stroke-linecap="round"/>
+</svg>

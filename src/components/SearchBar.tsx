@@ -31,8 +31,8 @@ export const SearchBar: React.FC<Props> = ({ onSearch, loading, minBitrate, onBi
           onChange={(e) => setValue(e.target.value)}
           disabled={loading}
         />
-        <button type="submit" className="search-bar__btn" disabled={loading || !value.trim()}>
-          {loading ? <span className="spinner spinner--sm" /> : t.search.button}
+        <button type="submit" className="search-bar__btn" disabled={loading || !value.trim()} title={t.search.button}>
+          {loading ? <span className="spinner spinner--sm" /> : '🔍'}
         </button>
       </form>
       <div className="bitrate-filter bitrate-filter--search">

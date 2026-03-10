@@ -80,8 +80,9 @@ export default function App() {
                   key={id}
                   className={`tab-btn ${tab === id ? 'tab-btn--active' : ''}`}
                   onClick={() => setTab(id)}
+                  title={t.tabs[id]}
                 >
-                  {t.tabs[id]}
+                  {id === 'search' ? '🔍' : t.tabs[id]}
                   {id === 'favorites' && favorites.length > 0 && (
                     <span className="tab-badge">{favorites.length}</span>
                   )}

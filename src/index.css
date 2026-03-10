@@ -297,15 +297,16 @@ img { display: block; }
 .search-bar__btn {
   background: var(--primary);
   color: #fff;
-  padding: 10px 20px;
+  padding: 10px 14px;
   border-radius: var(--radius);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   transition: background var(--transition);
-  min-width: 72px;
+  min-width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .search-bar__btn:hover:not(:disabled) { background: var(--primary-dark); }

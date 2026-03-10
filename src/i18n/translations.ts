@@ -4,7 +4,7 @@ export const translations = {
   zh: {
     appName: '免费全球Radio',
     tabs: {
-      explore:   '发现',
+      explore:   '首页',
       search:    '搜索',
       favorites: '收藏',
     },
@@ -46,7 +46,7 @@ export const translations = {
       stop:      '停止',
     },
     empty: {
-      favorites: '还没有收藏的电台，去「发现」或「搜索」页添加吧',
+      favorites: '还没有收藏的电台，去「首页」或「搜索」页添加吧',
       search:    '请输入关键词搜索电台',
       explore:   '暂无电台',
     },
@@ -59,7 +59,7 @@ export const translations = {
   en: {
     appName: 'Free Global Radio',
     tabs: {
-      explore:   'Explore',
+      explore:   'Home',
       search:    'Search',
       favorites: 'Favorites',
     },
@@ -101,7 +101,7 @@ export const translations = {
       stop:      'Stop',
     },
     empty: {
-      favorites: 'No favorites yet — browse Explore or Search to add some!',
+      favorites: 'No favorites yet — browse Home or Search to add some!',
       search:    'Enter a keyword to find stations',
       explore:   'No stations found',
     },

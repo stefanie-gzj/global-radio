@@ -82,7 +82,7 @@ export default function App() {
                   onClick={() => setTab(id)}
                   title={t.tabs[id]}
                 >
-                  {id === 'search' ? '🔍' : t.tabs[id]}
+                  {id === 'search' ? '🔍' : id === 'favorites' ? '⭐️' : t.tabs[id]}
                   {id === 'favorites' && favorites.length > 0 && (
                     <span className="tab-badge">{favorites.length}</span>
                   )}

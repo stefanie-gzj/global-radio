@@ -11,6 +11,8 @@ interface Props {
   currentStation: Station | null;
   playerState: PlayerState;
   isFavorite: (id: string) => boolean;
+  /** 上次连不上的电台，会被置灰并排到底部 */
+  isBroken?: (id: string) => boolean;
   onTogglePlay: (station: Station) => void;
   onToggleFavorite: (station: Station) => void;
   emptyMessage?: string;
@@ -18,7 +20,7 @@ interface Props {
 
 export const StationList: React.FC<Props> = ({
   stations, loading, error, currentStation, playerState,
-  isFavorite, onTogglePlay, onToggleFavorite, emptyMessage,
+  isFavorite, isBroken, onTogglePlay, onToggleFavorite, emptyMessage,
 }) => {
   const { t } = useTranslation();
 
@@ -58,6 +60,7 @@ export const StationList: React.FC<Props> = ({
             isPlaying={isActive && playerState === 'playing'}
             playerState={isActive ? playerState : 'idle'}
             isFavorite={isFavorite(station.stationuuid)}
+            isBroken={isBroken ? isBroken(station.stationuuid) : false}
             onTogglePlay={onTogglePlay}
             onToggleFavorite={onToggleFavorite}
           />

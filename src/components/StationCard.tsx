@@ -8,19 +8,27 @@ interface Props {
   isPlaying: boolean;
   playerState: PlayerState;
   isFavorite: boolean;
+  /** 上次点开连不上，置灰提示；再点播放键就是重试 */
+  isBroken?: boolean;
   onTogglePlay: (station: Station) => void;
   onToggleFavorite: (station: Station) => void;
 }
 
 const FALLBACK_FAVICON = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='%23e0e7ff'/><path d='M8 7h2v10H8zm4 2h2v8h-2zm4-4h2v14h-2z' fill='%236366f1'/></svg>`;
 
+const BROKEN_HINT = '上次连不上，点播放可以再试一次 · Could not connect last time — press play to retry';
+
 export const StationCard: React.FC<Props> = ({
-  station, isPlaying, playerState, isFavorite, onTogglePlay, onToggleFavorite,
+  station, isPlaying, playerState, isFavorite, isBroken = false,
+  onTogglePlay, onToggleFavorite,
 }) => {
   const { t } = useTranslation();
 
   return (
-    <div className={`station-card ${isPlaying ? 'station-card--playing' : ''}`}>
+    <div
+      className={`station-card ${isPlaying ? 'station-card--playing' : ''} ${isBroken ? 'station-card--broken' : ''}`}
+      style={isBroken && !isPlaying ? { opacity: 0.45 } : undefined}
+    >
       <div className="station-card__favicon-wrap">
         <img
           src={station.favicon || FALLBACK_FAVICON}
@@ -34,7 +42,18 @@ export const StationCard: React.FC<Props> = ({
       </div>
 
       <div className="station-card__info">
-        <p className="station-card__name" title={station.name}>{station.name}</p>
+        <p className="station-card__name" title={isBroken ? BROKEN_HINT : station.name}>
+          {isBroken && (
+            <span
+              className="station-card__broken-flag"
+              title={BROKEN_HINT}
+              style={{ marginRight: 6 }}
+            >
+              ⚠️
+            </span>
+          )}
+          {station.name}
+        </p>
         <p className="station-card__meta">
           {station.countrycode && <span className="station-card__country">{station.countrycode}</span>}
           {station.codec && <span>{station.codec}</span>}
@@ -61,10 +80,10 @@ export const StationCard: React.FC<Props> = ({
         <button
           className={`btn-icon btn-play ${isPlaying ? 'btn-play--active' : ''}`}
           onClick={() => onTogglePlay(station)}
-          title={isPlaying ? t.station.stop : t.station.play}
+          title={isBroken && !isPlaying ? BROKEN_HINT : (isPlaying ? t.station.stop : t.station.play)}
           aria-label={isPlaying ? t.station.stop : t.station.play}
         >
-          {isPlaying ? '⏹' : '▶'}
+          {isPlaying ? '⏹' : (isBroken ? '↻' : '▶')}
         </button>
       </div>
     </div>

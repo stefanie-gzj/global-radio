@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StationList } from './components/StationList';
 import { PlayerBar } from './components/PlayerBar';
 import { SearchBar } from './components/SearchBar';
 import { GenreFilter } from './components/GenreFilter';
 import { usePlayer } from './hooks/usePlayer';
 import { useFavorites } from './hooks/useFavorites';
+import { useBrokenStations } from './hooks/useBrokenStations';
 import { useTranslation } from './context/LanguageContext';
 import { getTopStations, searchStations, getStationsByTag } from './services/radioApi';
 import type { Station, TabType } from './types';
@@ -23,6 +24,7 @@ export default function App() {
 
   const player = usePlayer();
   const { favorites, isFavorite, toggleFavorite } = useFavorites();
+  const { isBroken, markBroken, markWorking } = useBrokenStations();
 
   const loadExplore = useCallback(async (genre: string, bitrate: number) => {
     setLoading(true);
@@ -57,10 +59,26 @@ export default function App() {
     }
   }, [t]);
 
+  // 播放结果反馈到「失效电台」记录：连不上就记一笔，连上了就消掉。
+  useEffect(() => {
+    const station = player.currentStation;
+    if (!station) return;
+    if (player.playerState === 'error') markBroken(station.stationuuid);
+    else if (player.playerState === 'playing') markWorking(station.stationuuid);
+  }, [player.playerState, player.currentStation, markBroken, markWorking]);
+
   const currentStations =
     tab === 'explore' ? exploreStations :
     tab === 'search'  ? searchResults   :
     favorites;
+
+  // 连不上的电台沉到列表底部，好台优先（sort 在现代浏览器里是稳定的，其余顺序不变）。
+  const orderedStations = useMemo(
+    () => [...currentStations].sort(
+      (a, b) => Number(isBroken(a.stationuuid)) - Number(isBroken(b.stationuuid))
+    ),
+    [currentStations, isBroken]
+  );
 
   const currentLoading = tab !== 'favorites' && loading;
   const currentError   = tab !== 'favorites' ? error : null;
@@ -125,12 +143,13 @@ export default function App() {
         )}
 
         <StationList
-          stations={currentStations}
+          stations={orderedStations}
           loading={currentLoading}
           error={currentError}
           currentStation={player.currentStation}
           playerState={player.playerState}
           isFavorite={isFavorite}
+          isBroken={isBroken}
           onTogglePlay={player.togglePlay}
           onToggleFavorite={toggleFavorite}
           emptyMessage={

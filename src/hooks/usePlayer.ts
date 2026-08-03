@@ -26,6 +26,8 @@ const GAIN_MAX = 5;
 const MEASURE_MS = 400;
 /** 低于这个值认为是静音/间奏，不参与调整 */
 const SILENCE_FLOOR = 0.0015;
+/** 分析窗口大小，必须和 AnalyserNode.fftSize 一致 */
+const FFT_SIZE = 2048;
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));
@@ -59,7 +61,6 @@ export function usePlayer() {
   const makeupRef   = useRef<GainNode | null>(null);   // 自动补偿增益
   const analyserRef = useRef<AnalyserNode | null>(null);
   const timerRef    = useRef<number | null>(null);
-  const bufRef      = useRef<Float32Array | null>(null);
   const playIdRef   = useRef(0);                        // 防止快速切台时的竞态
   const volumeRef   = useRef(savedVolume());
   const stationRef  = useRef<Station | null>(null);
@@ -93,7 +94,6 @@ export function usePlayer() {
     gainRef.current = null;
     makeupRef.current = null;
     analyserRef.current = null;
-    bufRef.current = null;
   }, [stopMeasuring]);
 
   const bindAudioEvents = useCallback((audio: HTMLAudioElement, id: number) => {
@@ -118,12 +118,13 @@ export function usePlayer() {
    */
   const startMeasuring = useCallback((id: number) => {
     stopMeasuring();
+    // 只分配一次，复用同一块缓冲区
+    const buf = new Float32Array(FFT_SIZE);
     timerRef.current = window.setInterval(() => {
       const ctx = ctxRef.current;
       const analyser = analyserRef.current;
       const makeup = makeupRef.current;
-      const buf = bufRef.current;
-      if (playIdRef.current !== id || !ctx || !analyser || !makeup || !buf) return;
+      if (playIdRef.current !== id || !ctx || !analyser || !makeup) return;
 
       analyser.getFloatTimeDomainData(buf);
       let sum = 0;
@@ -159,7 +160,7 @@ export function usePlayer() {
 
     // 响度测量（旁路，不出声）
     const analyser = ctx.createAnalyser();
-    analyser.fftSize = 2048;
+    analyser.fftSize = FFT_SIZE;
     analyser.smoothingTimeConstant = 0.8;
 
     // 用户音量
@@ -176,7 +177,6 @@ export function usePlayer() {
     gainRef.current     = gain;
     makeupRef.current   = makeup;
     analyserRef.current = analyser;
-    bufRef.current      = new Float32Array(analyser.fftSize);
     return ctx;
   }, []);
 

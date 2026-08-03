@@ -1,0 +1,30 @@
+# 依赖：由 package.json 决定，不该进仓库
+node_modules/
+
+# 构建产物
+dist/
+build/
+.vite/
+
+# macOS 自动生成的垃圾文件
+.DS_Store
+._*
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 本地环境变量（可能含密钥，绝对不要提交）
+.env
+.env.local
+.env.*.local
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vercel
+.vercel

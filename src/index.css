@@ -471,6 +471,10 @@ img { display: block; }
 
 .player-bar--error { border-top-color: var(--danger); }
 
+/* 重连中：琥珀色，跟「正常播放」和「彻底挂了」都区分开 */
+.player-bar--reconnecting { border-top-color: #f59e0b; }
+.player-bar--reconnecting .player-bar__state { color: #f59e0b; }
+
 .player-bar__info {
   display: flex;
   align-items: center;

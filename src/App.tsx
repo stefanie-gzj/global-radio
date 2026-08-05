@@ -165,6 +165,7 @@ export default function App() {
         playerState={player.playerState}
         normalizeState={player.normalizeState}
         volume={player.volume}
+        reconnectAttempt={player.reconnectAttempt}
         onStop={player.stop}
         onVolumeChange={player.setVolume}
       />

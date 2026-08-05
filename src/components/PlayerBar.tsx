@@ -8,27 +8,33 @@ interface Props {
   playerState: PlayerState;
   normalizeState: NormalizeState;
   volume: number;
+  reconnectAttempt: number;
   onStop: () => void;
   onVolumeChange: (v: number) => void;
 }
 
 export const PlayerBar: React.FC<Props> = ({
-  station, playerState, normalizeState, volume, onStop, onVolumeChange,
+  station, playerState, normalizeState, volume, reconnectAttempt, onStop, onVolumeChange,
 }) => {
   const { t } = useTranslation();
   if (!station) return null;
 
   const stateLabel: Record<PlayerState, string> = {
-    idle:    t.player.idle,
-    loading: t.player.loading,
-    playing: t.player.playing,
-    error:   t.player.error,
+    idle:         t.player.idle,
+    loading:      t.player.loading,
+    playing:      t.player.playing,
+    error:        t.player.error,
+    // 重连时如实说「重连中」，不要假装还在播
+    reconnecting: reconnectAttempt > 1
+      ? t.player.reconnectingN(reconnectAttempt)
+      : t.player.reconnecting,
   };
 
   return (
     <div className={`player-bar player-bar--${playerState}`}>
       <div className="player-bar__info">
         {playerState === 'loading' && <span className="spinner" />}
+        {playerState === 'reconnecting' && <span className="spinner" />}
         {playerState === 'playing' && (
           <span className="player-bar__wave"><span /><span /><span /><span /></span>
         )}

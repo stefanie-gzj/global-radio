@@ -64,13 +64,38 @@ function streamKey(station: Station): string {
   }
 }
 
+/**
+ * 已经确认下线的流服务器。
+ *
+ * radio-browser 的巡检有滞后，域名整个消失了它也可能还标着 lastcheckok=1，
+ * 于是列表里出现一批点了必定播不出来的台。这里按主机名直接剔掉。
+ *
+ * - http-live.sr.se：Sveriges Radio 撤掉的老服务器，DNS 已无任何记录
+ *   （NXDOMAIN）。现役的是 live1.sr.se，但两边的路径命名对不上，
+ *   不能机械改写（改了大多会变成 404），所以只做剔除。
+ *   受影响的台在 live1.sr.se 上大多另有一条记录，不会整个消失。
+ */
+const DEAD_HOSTS = new Set([
+  'http-live.sr.se',
+]);
+
+function isDeadHost(rawUrl: string): boolean {
+  try {
+    return DEAD_HOSTS.has(new URL(rawUrl.trim()).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 /** 明显用不了的条目直接不显示。 */
 function isUsable(s: Station): boolean {
   if (!s) return false;
   if (!s.name || !s.name.trim()) return false;
-  if (!(s.url_resolved || s.url)) return false;
+  const url = s.url_resolved || s.url;
+  if (!url) return false;
   // lastcheckok = 1 表示数据库最近一次巡检时这个流是通的
   if (s.lastcheckok !== 1) return false;
+  if (isDeadHost(url)) return false;
   return true;
 }
 

@@ -273,6 +273,9 @@ export function usePlayer() {
 
     audio.addEventListener('playing', () => {
       if (!mine()) return;
+      // 已经在出声了，就不该再留着任何"待执行的重连"——那会在几秒后
+      // 把正在好好播的流掐掉重来。这是最容易被忽略的一步。
+      clearReconnect();
       attemptRef.current = 0;            // 真的播起来了，退避计数清零
       setReconnectAttempt(0);
       lastProgressRef.current = Date.now();
@@ -304,7 +307,7 @@ export function usePlayer() {
     audio.addEventListener('suspend', () => {
       if (mine() && DEBUG) console.warn('[radio] suspend');
     });
-  }, [scheduleReconnect, updateMediaSession]);
+  }, [scheduleReconnect, updateMediaSession, clearReconnect]);
 
   /**
    * 持续测量压缩后的响度，缓慢地把补偿增益推向目标。
@@ -394,7 +397,16 @@ export function usePlayer() {
     return audio;
   }, []);
 
-  // 尝试带 CORS 播放，成功才能做响度处理
+  /**
+   * 尝试带 CORS 播放，成功才能做响度处理。
+   *
+   * 这一步是"探路"，失败是完全正常的（多数电台不开 CORS），失败了就走
+   * playFallback。所以探路期间绝对不能挂正式的事件监听——否则 CORS 被拒时
+   * 打出来的 error / pause 会被当成"播放中途断线"，触发一次没必要的重连，
+   * 而那个重连会在几秒后把刚刚 fallback 起来的声音掐掉，形成无限循环。
+   *
+   * 正确顺序：先用一对临时监听探路 → 确认能播了，再挂正式监听。
+   */
   const playWithNormalization = useCallback(
     (url: string, id: number): Promise<boolean> =>
       new Promise(resolve => {
@@ -402,31 +414,56 @@ export function usePlayer() {
         audio.crossOrigin = 'anonymous';
 
         let settled = false;
+        let timer = 0;
+
+        const onProbePlaying = () => settle(true);
+        const onProbeError = () => settle(false);
+
         const settle = (ok: boolean) => {
-          if (settled || playIdRef.current !== id) return;
+          if (settled) return;
           settled = true;
-          if (!ok) { audio.pause(); audio.removeAttribute('src'); audio.remove(); }
+          clearTimeout(timer);
+          // 探路用的临时监听，用完就摘掉，避免和正式监听重复触发
+          audio.removeEventListener('playing', onProbePlaying);
+          audio.removeEventListener('error', onProbeError);
+
+          if (playIdRef.current !== id) { resolve(false); return; }
+
+          if (ok) {
+            // 确认这条路能出声，现在才接上正式监听（重连、看门狗都靠它）
+            bindAudioEvents(audio, id);
+            // 'playing' 事件在挂监听之前就已经过去了，这里手动补一次状态
+            clearReconnect();
+            attemptRef.current = 0;
+            setReconnectAttempt(0);
+            lastProgressRef.current = Date.now();
+            setPlayerState('playing');
+            updateMediaSession(stationRef.current, 'playing');
+          } else {
+            // 静悄悄地收摊：没有正式监听，所以不会误触发重连
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.remove();
+          }
           resolve(ok);
         };
 
-        const timer = setTimeout(() => settle(false), 5000);
+        timer = window.setTimeout(() => settle(false), 5000);
 
-        audio.addEventListener('playing', () => { clearTimeout(timer); settle(true); });
-        audio.addEventListener('error', () => { clearTimeout(timer); settle(false); });
+        audio.addEventListener('playing', onProbePlaying);
+        audio.addEventListener('error', onProbeError);
 
         try {
           buildGraph(audio);
           audioRef.current = audio;
-          bindAudioEvents(audio, id);
           audio.src = url;
           audio.load();
-          audio.play().catch(() => { clearTimeout(timer); settle(false); });
+          audio.play().catch(onProbeError);
         } catch {
-          clearTimeout(timer);
-          settle(false);
+          onProbeError();
         }
       }),
-    [buildGraph, bindAudioEvents, createAudio]
+    [buildGraph, bindAudioEvents, createAudio, clearReconnect, updateMediaSession]
   );
 
   // 普通 <audio> 兜底：不需要 CORS，但也做不了响度处理
@@ -445,9 +482,11 @@ export function usePlayer() {
   // ── public API ─────────────────────────────────────────────────────────────
 
   const play = useCallback(async (station: Station, isRetry = false) => {
+    // 先把播放序号推进一格，再拆旧的。这样旧 audio 上的监听在被 teardown()
+    // 暂停时，mine() 已经是 false，不会再打出一次多余的重连请求。
+    const id = ++playIdRef.current;
     teardown();
     clearReconnect();
-    const id = ++playIdRef.current;
     const url = preferHttps(station.url_resolved || station.url);
 
     userStoppedRef.current = false;
